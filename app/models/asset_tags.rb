@@ -1,34 +1,39 @@
 module AssetTags
   include Radiant::Taggable
-  
+
   class TagError < StandardError; end
-  
+
   desc %{
     The namespace for referencing images and assets.  You may specify the 'title'
-    attribute on this tag for all contained tags to refer to that asset.  
-    
-    *Usage:* 
+    attribute on this tag for all contained tags to refer to that asset.
+
+    *Usage:*
     <pre><code><r:assets [title="asset_title"]>...</r:assets></code></pre>
-  }    
+  }
   tag 'assets' do |tag|
     tag.locals.asset = Asset.find_by_title(tag.attr['title']) || Asset.find(tag.attr['id']) unless tag.attr.empty?
     tag.expand
   end
 
   desc %{
-    Cycles through all assets attached to the current page.  
+    Cycles through all assets attached to the current page.
     This tag does not require the title atttribute, nor do any of its children.
     Use the `limit' and `offset` attribute to render a specific number of assets.
     Use `by` and `order` attributes to control the order of assets.
     Use `extensions` attribute to specify which assets to be rendered.
-    
-    *Usage:* 
-    <pre><code><r:assets:each [limit=0] [offset=0] [order="asc|desc"] [by="position|title|..."] [extensions="png|pdf|doc"]>...</r:assets:each></code></pre>
-  }    
+
+    *Usage:*
+    <pre><code><r:assets:each [tagged_with="comma,separated,tags"] [match_all="false"] [limit=0] [offset=0] [order="asc|desc"] [by="position|title|..."] [extensions="png|pdf|doc"]>...</r:assets:each></code></pre>
+  }
   tag 'assets:each' do |tag|
     options = tag.attr.dup
     result = []
-    assets = tag.locals.page.assets.find(:all, assets_find_options(tag))
+    assets = if options["tagged_with"]
+      match_all = options["match_all"] == "true"
+      tag.locals.page.assets.tagged_with(options["tagged_with"], assets_find_options(tag).merge(:match_all => match_all))
+    else
+      tag.locals.page.assets.find(:all, assets_find_options(tag))
+    end
     tag.locals.assets = assets
     assets.each do |asset|
       tag.locals.asset = asset
@@ -36,24 +41,30 @@ module AssetTags
     end
     result
   end
-  
+
   desc %{
-    References the first asset attached to the current page.  
-    
-    *Usage:* 
-    <pre><code><r:assets:first>...</r:assets:first></code></pre>
+    References the first asset attached to the current page.
+
+    *Usage:*
+    <pre><code><r:assets:first [tagged_with="comma,separated,tags"] [match_all="false"]>...</r:assets:first></code></pre>
   }
   tag 'assets:first' do |tag|
-    attachments = tag.locals.page.page_attachments
-    if first = attachments.first
-      tag.locals.asset = first.asset
+    options = tag.attr.dup
+    assets = if options["tagged_with"]
+      match_all = options["match_all"] == "true"
+      tag.locals.page.assets.tagged_with(options["tagged_with"], assets_find_options(tag).merge(:match_all => match_all))
+    else
+      tag.locals.page.assets.find(:all, assets_find_options(tag))
+    end
+    if first = assets.first
+      tag.locals.asset = first
       tag.expand
     end
   end
-  
+
   desc %{
-    Renders the asset only if the asset is the first asset attached to the current page.   
-  
+    Renders the asset only if the asset is the first asset attached to the current page.
+
     *Usage:*
     <pre><code><r:if_assets [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
   }

@@ -134,79 +134,81 @@ class Asset < ActiveRecord::Base
       thumbnails[:thumbnail] = ['100x100>', :png]
       thumbnails
     end
- 
+
     def thumbnail_names
       thumbnail_sizes.keys
     end
-    
+
     # returns a descriptive list suitable for use as options in a select box
-    
+
     def thumbnail_options
-      asset_sizes = thumbnail_sizes.collect{|k,v| 
+      asset_sizes = thumbnail_sizes.collect{|k,v|
         size_id = k
         size_description = "#{k}: "
         size_description << (v.is_a?(Array) ? v.join(' as ') : v)
-        [size_description, size_id] 
+        [size_description, size_id]
       }.sort_by{|pair| pair.last.to_s}
       asset_sizes.unshift ['Original (as uploaded)', 'original']
       asset_sizes
     end
-    
+
     # this is just a pointer that can be alias-chained in other extensions to add to or replace the list of thumbnail mechanisms
     # its invocation is delayed with a lambda in has_attached_file so that it isn't called when the extension loads, but when an attachment initializes:
     # that way we can be sure that all the related extensions have loaded and all the alias_chains are in place.
-    
+
     def thumbnail_definitions
       thumbnail_sizes
     end
- 
+
   private
     def additional_thumbnails
       Radiant::Config["assets.additional_thumbnails"].gsub(' ','').split(',').collect{|s| s.split('=')}.inject({}) {|ha, (k, v)| ha[k.to_sym] = v; ha}
     end
   end
-  
+
   # order_by 'title'
- 
+
   has_attached_file :asset,
                     :processors => lambda {|instance| instance.choose_processors },   # this allows us to set processors per file type, and to add more in other extensions
                     :styles => lambda { thumbnail_definitions },                      # and this lets extensions add thumbnailers (and also usefully defers the call)
                     :whiny_thumbnails => false,
-                    :storage => Radiant::Config["assets.storage"] == "s3" ? :s3 : :filesystem, 
+                    :storage => Radiant::Config["assets.storage"] == "s3" ? :s3 : :filesystem,
                     :s3_credentials => {
                       :access_key_id => Radiant::Config["assets.s3.key"],
                       :secret_access_key => Radiant::Config["assets.s3.secret"]
                     },
                     :bucket => Radiant::Config["assets.s3.bucket"],
-                    :url => Radiant::Config["assets.url"] ? Radiant::Config["assets.url"] : "/:class/:id/:basename:no_original_style.:extension", 
+                    :url => Radiant::Config["assets.url"] ? Radiant::Config["assets.url"] : "/:class/:id/:basename:no_original_style.:extension",
                     :path => Radiant::Config["assets.path"] ? Radiant::Config["assets.path"] : ":rails_root/public/:class/:id/:basename:no_original_style.:extension"
-                                 
+
   has_many :page_attachments, :dependent => :destroy
   has_many :pages, :through => :page_attachments
- 
+
   belongs_to :created_by, :class_name => 'User'
   belongs_to :updated_by, :class_name => 'User'
-  
+
+  acts_as_taggable
+
   validates_attachment_presence :asset, :message => "You must choose a file to upload!"
-  validates_attachment_content_type :asset, 
+  validates_attachment_content_type :asset,
     :content_type => Radiant::Config["assets.content_types"].gsub(' ','').split(',') if Radiant::Config.table_exists? && Radiant::Config["assets.content_types"] && Radiant::Config["assets.skip_filetype_validation"] == nil
-  validates_attachment_size :asset, 
+  validates_attachment_size :asset,
     :less_than => Radiant::Config["assets.max_asset_size"].to_i.megabytes if Radiant::Config.table_exists? && Radiant::Config["assets.max_asset_size"]
-    
+
   before_save :assign_title
-  
+
   register_type :image, %w[image/png image/x-png image/jpeg image/pjpeg image/jpg image/gif]
   register_type :video, %w[video/mpeg video/mp4 video/ogg video/quicktime video/x-ms-wmv video/x-flv]
   register_type :audio, %w[audio/mpeg audio/mpg audio/ogg application/ogg audio/x-ms-wma audio/vnd.rn-realaudio audio/x-wav]
   register_type :swf, %w[application/x-shockwave-flash]
   register_type :pdf, %w[application/pdf]
- 
+
   # alias for backwards-compatibility: movie can be video or swf
   register_type :movie, Mime::SWF.all_types + Mime::VIDEO.all_types
- 
+
   def thumbnail(size='original')
     return asset.url if size == 'original'
-    case 
+    case
       when self.pdf?   : "/images/assets/pdf_#{size.to_s}.png"
       when self.movie? : "/images/assets/movie_#{size.to_s}.png"
       when self.video? : "/images/assets/movie_#{size.to_s}.png"
