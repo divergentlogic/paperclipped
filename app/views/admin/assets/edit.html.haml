@@ -1,15 +1,17 @@
-- include_stylesheet 'admin/assets' 
-= render_region :top 
+- include_stylesheet 'admin/assets'
+- include_javascript 'lowpro'
+- include_javascript 'admin/assets'
+= render_region :top
 
 - render_region :main do |main|
   - main.edit_header do
     %h1= "Edit Asset"
-  
+
   - main.edit_form do
     - form_for :asset, :url => admin_asset_path(@asset), :html => { :method => "put", :multipart => true } do |f|
       .form-area
         = render :partial => "form", :locals => { :f => f }
-  
+
         %p.content
           %label.filename
             = "Filename: #{@asset.asset_file_name unless @asset.new_record?}"

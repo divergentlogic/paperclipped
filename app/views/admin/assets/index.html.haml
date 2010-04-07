@@ -16,35 +16,54 @@
   - preamble.filters do
     %p
       - form_tag(admin_assets_path,:id => 'filesearchform', :method => 'get') do
-        %span
-          = link_to "Images", "#"
-        %span
-          = link_to "Others", "#"
-        %span
-          = link_to "Audio", "#"
-        %span
-          = link_to "Movies", "#"
-    
+
         #type_boxes{ :style => "display: none" }
-          = check_box_tag 'filter[audio]',  '1', false, :id => 'audio-check' 
-          = check_box_tag 'filter[image]',  '1', false, :id => 'images-check' 
-          = check_box_tag 'filter[other]',  '1', false, :id => 'others-check' 
+          = check_box_tag 'filter[audio]',  '1', false, :id => 'audio-check'
+          = check_box_tag 'filter[image]',  '1', false, :id => 'images-check'
+          = check_box_tag 'filter[other]',  '1', false, :id => 'others-check'
           = check_box_tag 'filter[movie]',  '1', false, :id => 'movies-check'
+
+          #tag_boxes{ :style => 'display: none' }
+            - Asset.tag_counts.each do |tag|
+              = check_box_tag "tags[#{tag.id}]", '1', false, :id => "#{tag.name}-check", :class => 'filter'
+
+          %input{ :type => 'hidden', :id => 'current_page', :name => 'page', :value => params[:page].blank? ? 1 : params[:page] }
 
         %label Search
         %input{ :type => "search", :id => "search", :name => "search" , :value => params[:search] }
         = submit_tag "Search"
         = observe_field 'search',  :frequency => 1, :update => 'assets_table', :url =>  { :controller => 'assets', :action=> 'index' }, :method => 'get', :with => "'search=' + escape(value)"
 
+.filters
+  %h4 Content Types
+  %ul#content_type_filters
+    %li
+      %label.filter{ :for => 'images-check' } Images
+    %li
+      %label.filter{ :for => 'audio-check' } Audio
+    %li
+      %label.filter{ :for => 'movies-check' } Movies
+    %li
+      %label.filter{ :for => 'others-check' } Others
+
+  %h4 Tags
+  %ul#tag_filters
+    - Asset.tag_counts.each do |tag|
+      %li
+        %label.filter{ :for => "#{tag.name}-check" }
+          = tag.name
+
 #assets_table
   = render :partial => 'asset_table', :locals => { :assets => @assets }
 
+%br{ :style => 'clear: both' }
+
 = render :partial => 'assets_container'
-  
+
 - render_region :bottom do |bottom|
   - bottom.regenerate do
     - if current_user.admin?
-      %p 
-        You can regenerate all thumbnails here. Beware that this will take a while and consume considerable resources on your server. 
+      %p
+        You can regenerate all thumbnails here. Beware that this will take a while and consume considerable resources on your server.
       - form_tag refresh_admin_assets_path do
         %input.button{ :type => "submit", :value => "Regenerate" }

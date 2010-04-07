@@ -9,6 +9,17 @@ document.observe("dom:loaded", function() {
 
 var Asset = {};
 
+Asset.UpdateAssetsTable = function () {
+  var search_form = $('filesearchform');
+  new Ajax.Updater('assets_table', search_form.action, {
+    asynchronous: true,
+    evalScripts:  true,
+    parameters:   Form.serialize(search_form),
+    method: 'get',
+    onComplete: 'assets_table'
+  });
+};
+
 Asset.Tabs = Behavior.create({
   onclick: function(e){
     e.stop();
@@ -21,10 +32,10 @@ Asset.Tabs = Behavior.create({
 Asset.ChooseTab = function (element) {
   var pane = $(element.href.split('#')[1]);
   var panes = $('assets').select('.pane');
-  
+
   var tabs = $('asset-tabs').select('.asset-tab');
   tabs.each(function(tab) {tab.removeClassName('here');});
-  
+
   element.addClassName('here');;
   panes.each(function(pane) {Element.hide(pane);});
   Element.show($(pane));
@@ -37,7 +48,7 @@ Asset.ChooseTabByName = function (tabname) {
 
 // factored out so that it can be called after new page part creation
 
-Asset.MakeDraggables = function () { 
+Asset.MakeDraggables = function () {
   $$('div.asset').each(function(element){
     new Draggable(element, { revert: true });
     element.addClassName('move');
@@ -55,12 +66,12 @@ Asset.AddToPage = Behavior.create({
     e.stop();
     url = this.element.href;
     new Ajax.Updater('attachments', url, {
-      asynchronous : true, 
-      evalScripts  : true, 
+      asynchronous : true,
+      evalScripts  : true,
       method       : 'get'
       // onComplete   : Element.highlight('page-attachments')
     });
-    
+
   }
 });
 
@@ -88,7 +99,7 @@ Asset.MakeDroppables = function () {
         	}
         	box.focus();
         }
-      });      
+      });
     	box.addClassName('droppable');
     }
   });
@@ -127,8 +138,8 @@ Asset.FileTypes = Behavior.create({
       type_check.setAttribute('checked', 'checked');
     }
     new Ajax.Updater('assets_table', search_form.action, {
-      asynchronous: true, 
-      evalScripts:  true, 
+      asynchronous: true,
+      evalScripts:  true,
       parameters:   Form.serialize(search_form),
       method: 'get',
       onComplete: 'assets_table'
@@ -150,7 +161,7 @@ Asset.ResetForm = function (name) {
 }
 
 Asset.AddAsset = function (name) {
-  element = $(name); 
+  element = $(name);
   asset = element.select('.asset')[0];
   if (window.console && window.console.log) {
     console.log('inserted element is ', element);
@@ -161,6 +172,72 @@ Asset.AddAsset = function (name) {
   }
 }
 
+
+Asset.Tags = Behavior.create({
+  onclick: function(e){
+    var element = e.findElement('span');
+    if (element) {
+      var tags = $('asset_tag_list');
+
+      if (element.hasClassName('tag')) {
+        element.removeClassName('tag');
+        element.addClassName('selected_tag');
+        if (tags.value.length > 0) {
+          tags.value += ', ';
+        }
+        tags.value += element.innerHTML.unescapeHTML();
+      }
+      else if (element.hasClassName('selected_tag')) {
+        element.removeClassName('selected_tag');
+        element.addClassName('tag');
+        tags.value = tags.value.gsub(/\s*,\s*/, ',')
+                               .gsub(/^\s+/, '')
+                               .gsub(/\s+$/, '')
+                               .split(',')
+                               .without(element.innerHTML.unescapeHTML())
+                               .join(', ');
+      }
+    }
+  }
+});
+
+Asset.LabelFilters = Behavior.create({
+  onclick: function(e){
+    var element = e.findElement('label');
+    if (element) {
+      if (element.hasClassName('pressed')) {
+        element.removeClassName('pressed');
+      } else {
+        element.addClassName('pressed');
+      }
+      Asset.UpdateAssetsTable();
+    }
+  }
+});
+
+Asset.Pagination = Behavior.create({
+  onclick: function(e){
+    var element = e.findElement('div.pagination a');
+    if (element) {
+      e.stop();
+
+      var current_page = $('current_page');
+
+      if (element.hasClassName('prev_page')) {
+        current_page.value = parseInt(current_page.value, 10) - 1;
+      }
+      else if (element.hasClassName('next_page')) {
+        current_page.value = parseInt(current_page.value, 10) + 1;
+      }
+      else {
+        current_page.value = element.innerHTML;
+      }
+
+      Asset.UpdateAssetsTable();
+    }
+  }
+});
+
 Event.addBehavior({
   '#asset-tabs a'     : Asset.Tabs,
   '#close-link a'     : Asset.HideBucket,
@@ -168,5 +245,8 @@ Event.addBehavior({
   '#filesearchform a' : Asset.FileTypes,
   '#asset-upload'     : Asset.WaitingForm,
   'div.asset a'       : Asset.DisableLinks,
-  'a.add_asset'       : Asset.AddToPage
+  'a.add_asset'       : Asset.AddToPage,
+  'div.filters'       : Asset.LabelFilters,
+  'div.tags'          : Asset.Tags,
+  '#assets_table'     : Asset.Pagination
 });
