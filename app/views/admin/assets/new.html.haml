@@ -16,7 +16,18 @@
         %p.upload
           %label.upload Choose a file to upload
           = f.file_field :asset, :class => "", :style => "width: 100%"
-     
+
+        .tag_list
+          %label Choose tag(s)
+          = f.text_field :tag_list,  :autocomplete => 'off'
+          .small Tags are seperated by commas
+          .tags
+            - tag_cloud Asset.tag_counts, %w(css1 css2 css3 css4) do |tag, css_class|
+              - if @asset.tag_list.include?(tag.name)
+                %span.selected_tag= tag.name
+              - else
+                %span.tag= tag.name
+
         %p.buttons
           = save_model_button(@asset)
           = save_model_and_continue_editing_button(@asset)
