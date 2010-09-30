@@ -1,8 +1,9 @@
 class Admin::AssetsController < Admin::ResourceController
   skip_before_filter :verify_authenticity_token, :only => :create
+  before_filter :load_tags
 
   def index
-    @assets = Asset.search(params[:search], params[:filter], params[:page])
+    @assets = Asset.search(params[:search], params[:filter], params[:tags], params[:page])
     @page = Page.find(params[:asset_page]) if params[:asset_page]
 
     respond_to do |format|
@@ -119,6 +120,12 @@ class Admin::AssetsController < Admin::ResourceController
     end
     clear_model_cache
     render :nothing => true
+  end
+
+private
+
+  def load_tags
+    @tags = Asset.tag_counts.sort { |a, b| a.name <=> b.name }
   end
 
 end

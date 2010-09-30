@@ -5,6 +5,13 @@ document.observe("dom:loaded", function() {
   if($('page-attachments')){
     Asset.ChooseTabByName('page-attachments');
   }
+  if($('filesearchform')){
+    $('filesearchform').select('input[type="checkbox"]').each(function (e) {
+      if(e.getValue() == '1'){
+        $$('label[for="'+e.readAttribute('id')+'"]')[0].addClassName('pressed');
+      }
+    });
+  }
 });
 
 var Asset = {};
@@ -137,13 +144,7 @@ Asset.FileTypes = Behavior.create({
       element.addClassName('pressed');
       type_check.setAttribute('checked', 'checked');
     }
-    new Ajax.Updater('assets_table', search_form.action, {
-      asynchronous: true,
-      evalScripts:  true,
-      parameters:   Form.serialize(search_form),
-      method: 'get',
-      onComplete: 'assets_table'
-    });
+    Asset.UpdateAssetsTable();
   }
 });
 

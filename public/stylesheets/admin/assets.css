@@ -70,7 +70,7 @@ table td.add-to-bucket { width: 90px;}
 .pagination { margin-top: -10px;  margin-bottom: 25px; font-weight: bold; font-size: 90%; color: silver; }
 .pagination a { text-decoration: none; color: black; }
 .pagination a:hover { text-decoration: underline; color: blue; }
-.pagination .current { color: black; }
+.pagination .current { color: #CC0000; }
 
 #content .form-area p.upload { margin: 2px 0 10px 0; padding: 10px 10px; background: white; border: 1px solid #cdc295; }
 #content .form-area div.asset { margin: 2px 0; padding: 10px; background: white; border: 1px solid #cdc295; }

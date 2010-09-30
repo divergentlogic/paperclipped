@@ -69,6 +69,7 @@ class Asset < ActiveRecord::Base
   named_scope :furniture, {:conditions => 'assets.furniture = 1'}
   named_scope :not_furniture, {:conditions => 'assets.furniture = 0 or assets.furniture is null'}
   named_scope :newest_first, { :order => 'created_at DESC'}
+  named_scope :content_types, lambda {|types| { :conditions => types_to_conditions(types).join(' OR ') }}
 
   def self.other_condition
     send(:sanitize_sql, ['asset_content_type NOT IN (?)', self.mime_types_not_considered_other])
@@ -79,7 +80,7 @@ class Asset < ActiveRecord::Base
   end
 
   class << self
-    def search(search, filter, page)
+    def search(search, filter, tags, page)
       unless search.blank?
 
         search_cond_sql = []
@@ -100,11 +101,21 @@ class Asset < ActiveRecord::Base
                   :per_page => 10 }
 
       @file_types = filter.blank? ? [] : filter.keys
-      if not @file_types.empty?
-        options[:total_entries] = count_by_conditions
-        Asset.paginate_by_content_types(@file_types, :all, options )
+      @selected_tags =tags.blank? ? [] : Tag.find(tags.keys)
+
+      Asset.content_types(@content_types).
+            find_tagged_with_or_all(@selected_tags, :match_all => true).
+            paginate(options)
+    end
+
+    def find_tagged_with_or_all(*args)
+      if args.first.blank?
+        options = find_options_for_find_tagged_with(*args)
+        options.delete(:exclude)
+        options.delete(:match_all)
+        find(:all, options)
       else
-        Asset.paginate(:all, options)
+        find_tagged_with(*args)
       end
     end
 
@@ -122,7 +133,7 @@ class Asset < ActiveRecord::Base
     end
 
     def types_to_conditions(types)
-      types.collect! { |t| '(' + send("#{t}_condition") + ')' }
+      types.blank? ? ["(NULL IS NULL)"] : types.collect! { |t| '(' + send("#{t}_condition") + ')' }
     end
 
     def thumbnail_sizes

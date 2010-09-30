@@ -24,7 +24,7 @@
           = f.text_field :tag_list,  :autocomplete => 'off'
           .small Tags are seperated by commas
           .tags
-            - tag_cloud Asset.tag_counts, %w(css1 css2 css3 css4) do |tag, css_class|
+            - tag_cloud @tags, %w(css1 css2 css3 css4) do |tag, css_class|
               - if @asset.tag_list.include?(tag.name)
                 %span.selected_tag= tag.name
               - else
