@@ -101,9 +101,9 @@ class Asset < ActiveRecord::Base
                   :per_page => 10 }
 
       @file_types = filter.blank? ? [] : filter.keys
-      @selected_tags =tags.blank? ? [] : Tag.find(tags.keys)
+      @selected_tags = tags.blank? ? [] : Tag.find(tags.keys)
 
-      Asset.content_types(@content_types).
+      Asset.content_types(@file_types).
             find_tagged_with_or_all(@selected_tags, :match_all => true).
             paginate(options)
     end
