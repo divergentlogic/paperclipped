@@ -7,9 +7,7 @@ document.observe("dom:loaded", function() {
   }
   if($('filesearchform')){
     $('filesearchform').select('input[type="checkbox"]').each(function (e) {
-      if(e.getValue() == '1'){
-        $$('label[for="'+e.readAttribute('id')+'"]')[0].addClassName('pressed');
-      }
+      e.setValue(null);
     });
   }
 });
@@ -202,6 +200,14 @@ Asset.Tags = Behavior.create({
   }
 });
 
+Asset.CheckBoxFilters = Behavior.create({
+  onchange: function(e){
+    e.stop();
+    $('current_page').value = 1;
+    Asset.UpdateAssetsTable();
+  }
+});
+
 Asset.LabelFilters = Behavior.create({
   onclick: function(e){
     var element = e.findElement('label');
@@ -211,7 +217,6 @@ Asset.LabelFilters = Behavior.create({
       } else {
         element.addClassName('pressed');
       }
-      Asset.UpdateAssetsTable();
     }
   }
 });
@@ -240,14 +245,15 @@ Asset.Pagination = Behavior.create({
 });
 
 Event.addBehavior({
-  '#asset-tabs a'     : Asset.Tabs,
-  '#close-link a'     : Asset.HideBucket,
-  '#show-bucket a'    : Asset.ShowBucket,
-  '#filesearchform a' : Asset.FileTypes,
-  '#asset-upload'     : Asset.WaitingForm,
-  'div.asset a'       : Asset.DisableLinks,
-  'a.add_asset'       : Asset.AddToPage,
-  'div.filters'       : Asset.LabelFilters,
-  'div.tags'          : Asset.Tags,
-  '#assets_table'     : Asset.Pagination
+  '#asset-tabs a'           : Asset.Tabs,
+  '#close-link a'           : Asset.HideBucket,
+  '#show-bucket a'          : Asset.ShowBucket,
+  '#filesearchform a'       : Asset.FileTypes,
+  '#asset-upload'           : Asset.WaitingForm,
+  'div.asset a'             : Asset.DisableLinks,
+  'a.add_asset'             : Asset.AddToPage,
+  '#tag_boxes, #type_boxes' : Asset.CheckBoxFilters,
+  'div.filters'             : Asset.LabelFilters,
+  'div.tags'                : Asset.Tags,
+  '#assets_table'           : Asset.Pagination
 });
