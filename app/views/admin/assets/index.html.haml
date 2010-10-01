@@ -48,7 +48,7 @@
 
   %h4 Tags
   %ul#tag_filters
-    - Asset.tag_counts.each do |tag|
+    - @tags.each do |tag|
       %li
         %label.filter{ :for => "#{tag.name}-check" }
           = tag.name
