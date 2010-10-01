@@ -1,5 +1,6 @@
 class Admin::AssetsController < Admin::ResourceController
   skip_before_filter :verify_authenticity_token, :only => :create
+  skip_before_filter :load_models
   before_filter :load_tags
 
   def index
