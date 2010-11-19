@@ -151,6 +151,14 @@ class Asset < ActiveRecord::Base
       thumbnail_sizes.keys
     end
 
+    def convert_options
+      if Radiant::Config.table_exists? && Radiant::Config["assets.convert_options"]
+        convert_options = get_styles_hash(Radiant::Config["assets.convert_options"])
+      else
+        convert_options = {}
+      end
+    end
+
     # returns a descriptive list suitable for use as options in a select box
 
     def thumbnail_options
@@ -174,7 +182,11 @@ class Asset < ActiveRecord::Base
 
   private
     def additional_thumbnails
-      Radiant::Config["assets.additional_thumbnails"].gsub(' ','').split(',').collect{|s| s.split('=')}.inject({}) {|ha, (k, v)| ha[k.to_sym] = v; ha}
+      get_styles_hash(Radiant::Config["assets.additional_thumbnails"])
+    end
+
+    def get_styles_hash(setting)
+      setting.split(/\s*,\s*/).collect{|s| s.split('=')}.inject({}) {|ha, (k, v)| ha[k.to_sym] = v; ha}
     end
   end
 
@@ -183,6 +195,7 @@ class Asset < ActiveRecord::Base
   has_attached_file :asset,
                     :processors => lambda {|instance| instance.choose_processors },   # this allows us to set processors per file type, and to add more in other extensions
                     :styles => lambda { thumbnail_definitions },                      # and this lets extensions add thumbnailers (and also usefully defers the call)
+                    :convert_options => lambda { convert_options },
                     :whiny_thumbnails => false,
                     :storage => Radiant::Config["assets.storage"] == "s3" ? :s3 : :filesystem,
                     :s3_credentials => {
