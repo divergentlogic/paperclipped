@@ -74,12 +74,12 @@ module AssetTags
     if asset == attachments.first
       tag.expand
     end
-  end  
-  
-  
+  end
+
+
   desc %{
     Renders the asset only if the asset is not the first asset attached to the current page.
-    
+
     *Usage:*
     <pre><code><r:if_assets [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
   }
@@ -90,12 +90,12 @@ module AssetTags
       tag.expand
     end
   end
-  
+
   desc %{
     Renders the contained elements only if the current contextual page has one or
     more assets. The @min_count@ attribute specifies the minimum number of required
     assets. You can also filter by extensions with the @extensions@ attribute.
-  
+
     *Usage:*
     <pre><code><r:if_assets [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
   }
@@ -104,7 +104,7 @@ module AssetTags
     assets = tag.locals.page.assets.count(:conditions => assets_find_options(tag)[:conditions])
     tag.expand if assets >= count
   end
-  
+
   desc %{
     The opposite of @<r:if_attachments/>@.
   }
@@ -118,7 +118,7 @@ module AssetTags
     end
     tag.expand unless assets >= count
   end
-  
+
     desc %{
       Renders the value for a top padding for the image. Put the image in a container with specified height and using this tag you can vertically align the image within it's container.
 
@@ -130,7 +130,7 @@ module AssetTags
         <ul>
           <r:assets:each>
             <li style="height:140px">
-              <img style="padding-top:<r:top_padding size='category' container='140' />px" 
+              <img style="padding-top:<r:top_padding size='category' container='140' />px"
                    src="<r:url />" alt="<r:title />" />
             </li>
           </r:assets:each>
@@ -150,7 +150,7 @@ module AssetTags
         raise TagError, "Asset is not an image"
       end
     end
-   
+
     ['height','width'].each do |att|
       desc %{
         Renders the #{att} of the asset.
@@ -172,7 +172,7 @@ module AssetTags
     The 'title' attribute is required on the parent tag unless this tag is used in assets:each.
     If the 'ignore_case' attribute is set to false, the match is case sensitive. By default, 'ignore_case' is set to true.
 
-    *Usage:* 
+    *Usage:*
     <pre><code><r:assets:each:if_content_type matches="regexp" [ignore_case=true|false"]>...</r:assets:each:if_content_type></code></pre>
   }
   tag 'assets:if_content_type' do |tag|
@@ -183,10 +183,10 @@ module AssetTags
     asset_content_type = tag.locals.asset.asset_content_type
     tag.expand unless asset_content_type.match(regexp).nil?
   end
-  
+
   [:title, :caption, :asset_file_name, :asset_content_type, :asset_file_size, :id].each do |method|
     desc %{
-      Renders the `#{method.to_s}' attribute of the asset.     
+      Renders the `#{method.to_s}' attribute of the asset.
       The 'title' attribute is required on this tag or the parent tag.
     }
     tag "assets:#{method.to_s}" do |tag|
@@ -195,20 +195,20 @@ module AssetTags
       asset.send(method) rescue nil
     end
   end
-  
+
   tag "assets:filename" do |tag|
     options = tag.attr.dup
     asset = find_asset(tag, options)
     asset.asset_file_name rescue nil
   end
-  
+
   desc %{
-    Renders an image tag for the asset. Using the option size attribute, different sizes can be display. Thumbnail and icon are built 
+    Renders an image tag for the asset. Using the option size attribute, different sizes can be display. Thumbnail and icon are built
     in, but custom sizes can be set using assets.addition_thumbnails in the Radiant::Config settings.
-    
-    *Usage:* 
+
+    *Usage:*
     <pre><code><r:assets:image [title="asset_title"] [size="icon|thumbnail"]></code></pre>
-  }    
+  }
   tag 'assets:image' do |tag|
     options = tag.attr.dup
     asset = find_asset(tag, options)
@@ -217,7 +217,7 @@ module AssetTags
       geometry = options['geometry'] ? options.delete('geometry') : nil
       #This is very exoerimental and will generate new sizes on the fly
       asset.generate_style(size, { :size => geometry }) if geometry
-      
+
       alt = " alt='#{asset.title}'" unless tag.attr['alt'] rescue nil
       attributes = options.inject('') { |s, (k, v)| s << %{#{k.downcase}="#{v}" } }.strip
       attributes << alt unless alt.nil?
@@ -229,17 +229,17 @@ module AssetTags
   end
   desc %{
     Embeds a flash-movie in a cross-browser-compatible fashion using only HTML
-    
+
     *Usage:*
     <pre><code><r:assets:flash [title="asset_title"] [width="100"] [height="100"]>Fallback content</flash></code></pre>
-    
+
     *Example with text fallback:*
     <pre><code>
       <r:assets:flash title="flash_movie" width="300"] height="200">
         Sorry, you need to have flash installed, <a href="http://adobe.com/flash">get it here</a>
       </flash>
     </code></pre>
-    
+
     *Example with image fallback:*
     <pre><code>
       <r:assets:flash title="flash_movie" width="300"] height="200">
@@ -266,33 +266,33 @@ module AssetTags
           <!--<![endif]-->
     </object>}
   end
-  
+
   tag 'assets:thumbnail' do |tag|
     options = tag.attr.dup
     asset = find_asset(tag, options)
     asset.generate_thumbnail('test', ['24x24#',nil])
-    asset.save    
+    asset.save
   end
-  
+
   desc %{
-    Renders the url for the asset. If the asset is an image, the <code>size</code> attribute can be used to 
-    generate the url for that size. 
-    
-    *Usage:* 
+    Renders the url for the asset. If the asset is an image, the <code>size</code> attribute can be used to
+    generate the url for that size.
+
+    *Usage:*
     <pre><code><r:image [title="asset_title"] [size="icon|thumbnail"]></code></pre>
-  }    
+  }
   tag 'assets:url' do |tag|
     options = tag.attr.dup
     asset = find_asset(tag, options)
     size = options['size'] ? options.delete('size') : 'original'
     asset.thumbnail(size) rescue nil
   end
-  
+
   desc %{
-    Renders a link to the asset. If the asset is an image, the <code>size</code> attribute can be used to 
-    generate a link to that size. 
-    
-    *Usage:* 
+    Renders a link to the asset. If the asset is an image, the <code>size</code> attribute can be used to
+    generate a link to that size.
+
+    *Usage:*
     <pre><code><r:image [title="asset_title"] [size="icon|thumbnail"]></code></pre>
   }
   tag 'assets:link' do |tag|
@@ -307,7 +307,7 @@ module AssetTags
     url = asset.thumbnail(size)
     %{<a href="#{url  }#{anchor}"#{attributes}>#{text}</a>} rescue nil
   end
-  
+
   # Resets the page Url and title within the asset tag
   [:title, :url].each do |method|
     tag "assets:page:#{method.to_s}" do |tag|
@@ -317,7 +317,7 @@ module AssetTags
 
   desc %{
   Renders the 'extension' virtual attribute of the asset, extracted from filename.
-  
+
   *Usage*:
     <pre><code>
       <ul>
@@ -334,32 +334,32 @@ module AssetTags
     asset = tag.locals.asset
     asset.asset_file_name[/\.(\w+)$/, 1]
   end
-  
+
   private
-    
+
     def find_asset(tag, options)
       raise TagError, "'title' attribute required" unless title = options.delete('title') or id = options.delete('id') or tag.locals.asset
       tag.locals.asset || Asset.find_by_title(title) || Asset.find(id)
     end
-    
+
     def assets_find_options(tag)
       attr = tag.attr.symbolize_keys
       extensions = attr[:extensions] && attr[:extensions].split('|') || []
       conditions = unless extensions.blank?
-        [ extensions.map { |ext| "assets.asset_file_name LIKE ?"}.join(' OR '), 
+        [ extensions.map { |ext| "assets.asset_file_name LIKE ?"}.join(' OR '),
           *extensions.map { |ext| "%.#{ext}" } ]
       else
         nil
       end
-      
+
       by = attr[:by] || "page_attachments.position"
       order = attr[:order] || "asc"
-      
+
       options = {
         :order => "#{by} #{order}",
         :limit => attr[:limit] || nil,
         :offset => attr[:offset] || nil,
         :conditions => conditions
       }
-    end    
+    end
 end
