@@ -109,8 +109,13 @@ module AssetTags
     The opposite of @<r:if_attachments/>@.
   }
   tag 'unless_assets' do |tag|
+    options = tag.attr.dup
     count = tag.attr['min_count'] && tag.attr['min_count'].to_i || 1
-    assets = tag.locals.page.assets.count(:conditions => assets_find_options(tag)[:conditions])
+    assets = if options["tagged_with"]
+      tag.locals.page.assets.tagged_with(options["tagged_with"], assets_find_options(tag)).count
+    else
+      tag.locals.page.assets.count(:conditions => assets_find_options(tag)[:conditions])
+    end
     tag.expand unless assets >= count
   end
   
