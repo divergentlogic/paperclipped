@@ -212,7 +212,7 @@ module AssetTags
   tag 'assets:image' do |tag|
     options = tag.attr.dup
     asset = find_asset(tag, options)
-    if asset.image?
+    if asset.image? || %w[thumbnail icon].include?(tag.attr["size"])
       size = options['size'] ? options.delete('size') : 'original'
       geometry = options['geometry'] ? options.delete('geometry') : nil
       #This is very exoerimental and will generate new sizes on the fly

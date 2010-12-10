@@ -226,6 +226,9 @@ class Asset < ActiveRecord::Base
   register_type :audio, %w[audio/mpeg audio/mpg audio/ogg application/ogg audio/x-ms-wma audio/vnd.rn-realaudio audio/x-wav]
   register_type :swf, %w[application/x-shockwave-flash]
   register_type :pdf, %w[application/pdf]
+  register_type :word, %w[application/msword application/vnd.openxmlformats-officedocument.wordprocessingml.document]
+  register_type :ppt, %w[application/vnd.ms-powerpoint application/vnd.openxmlformats-officedocument.presentationml.presentation]
+  register_type :excel, %w[application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet]
 
   # alias for backwards-compatibility: movie can be video or swf
   register_type :movie, Mime::SWF.all_types + Mime::VIDEO.all_types
@@ -236,8 +239,11 @@ class Asset < ActiveRecord::Base
       when self.pdf?   : "/images/assets/pdf_#{size.to_s}.png"
       when self.movie? : "/images/assets/movie_#{size.to_s}.png"
       when self.video? : "/images/assets/movie_#{size.to_s}.png"
-      when self.swf? : "/images/assets/movie_#{size.to_s}.png" #TODO: special icon for swf-files
+      when self.swf?   : "/images/assets/movie_#{size.to_s}.png" #TODO: special icon for swf-files
       when self.audio? : "/images/assets/audio_#{size.to_s}.png"
+      when self.word?  : "/images/assets/word_#{size.to_s}.png"
+      when self.ppt?   : "/images/assets/ppt_#{size.to_s}.png"
+      when self.excel? : "/images/assets/excel_#{size.to_s}.png"
       when self.other? : "/images/assets/doc_#{size.to_s}.png"
     else
       self.asset.url(size.to_sym)
