@@ -225,7 +225,7 @@ class Asset < ActiveRecord::Base
   register_type :video, %w[video/mpeg video/mp4 video/ogg video/quicktime video/x-ms-wmv video/x-flv]
   register_type :audio, %w[audio/mpeg audio/mpg audio/ogg application/ogg audio/x-ms-wma audio/vnd.rn-realaudio audio/x-wav]
   register_type :swf, %w[application/x-shockwave-flash]
-  register_type :pdf, %w[application/pdf]
+  register_type :pdf, %w[application/pdf application/x-pdf]
   register_type :word, %w[application/msword application/vnd.openxmlformats-officedocument.wordprocessingml.document]
   register_type :ppt, %w[application/vnd.ms-powerpoint application/vnd.openxmlformats-officedocument.presentationml.presentation]
   register_type :excel, %w[application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet]
