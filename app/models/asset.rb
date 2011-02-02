@@ -103,14 +103,17 @@ class Asset < ActiveRecord::Base
       @file_types = filter.blank? ? [] : filter.keys
       @selected_tags = tags.blank? ? [] : Tag.find(tags.keys)
 
-      Asset.content_types(@file_types).
-            find_tagged_with_or_all(@selected_tags, :match_all => true).
-            paginate(options)
+      # Asset.content_types(@file_types).
+            # find_tagged_with_or_all(@selected_tags, :match_all => true).
+            # paginate(options)
+      options[:total_entries] = Asset.content_types(@file_types).find_tagged_with_or_all(@selected_tags, :conditions => options[:conditions]).length
+      Asset.content_types(@file_types).paginate_tagged_with_or_all(@selected_tags, options.merge(:match_all => true))
     end
 
     def find_tagged_with_or_all(*args)
       if args.first.blank?
-        options = find_options_for_find_tagged_with(*args)
+        # options = find_options_for_find_tagged_with(*args)
+        options = args[1]
         options.delete(:exclude)
         options.delete(:match_all)
         find(:all, options)
@@ -133,7 +136,7 @@ class Asset < ActiveRecord::Base
     end
 
     def types_to_conditions(types)
-      types.blank? ? ["(NULL IS NULL)"] : types.collect! { |t| '(' + send("#{t}_condition") + ')' }
+      types.blank? ? ["(NULL IS NULL)"] : types.dup.collect! { |t| '(' + send("#{t}_condition") + ')' }
     end
 
     def thumbnail_sizes
