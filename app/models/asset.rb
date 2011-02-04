@@ -99,6 +99,9 @@ class Asset < ActiveRecord::Base
                   :order => 'created_at DESC',
                   :page => page,
                   :per_page => 10 }
+      count_options = { :conditions => options[:conditions] }
+      options.delete :conditions if options[:conditions].empty?
+      count_options.delete :conditions if count_options[:conditions].empty?
 
       @file_types = filter.blank? ? [] : filter.keys
       @selected_tags = tags.blank? ? [] : Tag.find(tags.keys)
@@ -106,14 +109,14 @@ class Asset < ActiveRecord::Base
       # Asset.content_types(@file_types).
             # find_tagged_with_or_all(@selected_tags, :match_all => true).
             # paginate(options)
-      options[:total_entries] = Asset.content_types(@file_types).find_tagged_with_or_all(@selected_tags, :conditions => options[:conditions]).length
+      options[:total_entries] = Asset.content_types(@file_types).find_tagged_with_or_all(@selected_tags, count_options).length
       Asset.content_types(@file_types).paginate_tagged_with_or_all(@selected_tags, options.merge(:match_all => true))
     end
 
     def find_tagged_with_or_all(*args)
       if args.first.blank?
-        # options = find_options_for_find_tagged_with(*args)
-        options = args[1]
+        options = find_options_for_find_tagged_with(*args)
+        options = args[1] if options.empty?
         options.delete(:exclude)
         options.delete(:match_all)
         find(:all, options)
