@@ -66,7 +66,7 @@ module AssetTags
     Renders the asset only if the asset is the first asset attached to the current page.
 
     *Usage:*
-    <pre><code><r:if_assets [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
+    <pre><code><r:if_first [min_count="n"] [extensions="pdf|jpg"]>...</r:if_first></code></pre>
   }
   tag 'assets:if_first' do |tag|
     attachments = tag.locals.assets
@@ -81,7 +81,7 @@ module AssetTags
     Renders the asset only if the asset is not the first asset attached to the current page.
 
     *Usage:*
-    <pre><code><r:if_assets [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
+    <pre><code><r:unless_first [min_count="n"] [extensions="pdf|jpg"]>...</r:unless_first></code></pre>
   }
   tag 'assets:unless_first' do |tag|
     attachments = tag.locals.assets
@@ -97,16 +97,21 @@ module AssetTags
     assets. You can also filter by extensions with the @extensions@ attribute.
 
     *Usage:*
-    <pre><code><r:if_assets [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
+    <pre><code><r:if_assets [tagged_with="comma,separated,tags"] [min_count="n"] [extensions="pdf|jpg"]>...</r:if_assets></code></pre>
   }
   tag 'if_assets' do |tag|
+    options = tag.attr.dup
     count = tag.attr['min_count'] && tag.attr['min_count'].to_i || 1
-    assets = tag.locals.page.assets.count(:conditions => assets_find_options(tag)[:conditions])
+    assets = if options["tagged_with"]
+      tag.locals.page.assets.tagged_with(options["tagged_with"], assets_find_options(tag)).count
+    else
+      tag.locals.page.assets.count(:conditions => assets_find_options(tag)[:conditions])
+    end
     tag.expand if assets >= count
   end
 
   desc %{
-    The opposite of @<r:if_attachments/>@.
+    The opposite of @<r:if_assets/>@.
   }
   tag 'unless_assets' do |tag|
     options = tag.attr.dup
