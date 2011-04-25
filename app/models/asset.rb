@@ -84,9 +84,9 @@ class Asset < ActiveRecord::Base
       unless search.blank?
 
         search_cond_sql = []
-        search_cond_sql << 'LOWER(asset_file_name) LIKE (:term)'
+        search_cond_sql << '(LOWER(asset_file_name) LIKE (:term)'
         search_cond_sql << 'LOWER(title) LIKE (:term)'
-        search_cond_sql << 'LOWER(caption) LIKE (:term)'
+        search_cond_sql << 'LOWER(caption) LIKE (:term))'
 
         cond_sql = search_cond_sql.join(" or ")
 
