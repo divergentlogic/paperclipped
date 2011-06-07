@@ -298,7 +298,7 @@ module AssetTags
     generate a link to that size.
 
     *Usage:*
-    <pre><code><r:image [title="asset_title"] [size="icon|thumbnail"]></code></pre>
+    <pre><code><r:image [title="asset_title"] [size="icon|thumbnail"] [force_download=true]></code></pre>
   }
   tag 'assets:link' do |tag|
     options = tag.attr.dup
@@ -306,11 +306,13 @@ module AssetTags
     size = options['size'] ? options.delete('size') : 'original'
     text = options['text'] || asset.title
     anchor = options['anchor'] ? "##{options.delete('anchor')}" : ''
+    download = options.delete("force_download")
+    download = "?download=true" if download
     attributes = options.inject('') { |s, (k, v)| s << %{#{k.downcase}="#{v}" } }.strip
     attributes = " #{attributes}" unless attributes.empty?
     text = tag.double? ? tag.expand : text
     url = asset.thumbnail(size)
-    %{<a href="#{url  }#{anchor}"#{attributes}>#{text}</a>} rescue nil
+    %{<a href="#{url  }#{download}#{anchor}"#{attributes}>#{text}</a>} rescue nil
   end
 
   # Resets the page Url and title within the asset tag
